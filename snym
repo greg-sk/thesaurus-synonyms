@@ -1,0 +1,45 @@
+#!/bin/bash
+
+word=$1
+
+if mkdir "$word" > /dev/null 2>&1; then
+  cd "$word"
+  curl -s http://www.thesaurus.com/browse/$word > page.htm
+
+  # split multiple tabs, you need to ignore tab00
+  csplit -f tab page.htm '/synonym-description/' {*} > /dev/null
+  
+  rm tab00
+  
+  for tab in tab??; do
+    # split tabs into synonym - antonym sections
+    csplit -f $tab $tab '/container-info antonyms/' {*} > /dev/null
+  done
+else
+  cd "$word"
+fi
+
+rm -f syn_*; rm -f ant_*
+
+W1=30
+W2=$((W1-1))
+W3=$((W1*2))
+
+
+
+for tab in tab??; do
+  #printf "\nMeaning:\n" > p$tab
+  printf "\n" > p$tab
+  grep '<strong class="ttl">' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> p$tab
+
+  printf "\n%-${W1}s%-${W1}s\n\n" "Synonyms:" "Antonyms:" >> p$tab
+  for i in 3 2 1; do
+    grep relevant-$i ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' | awk '{printf "%-'${W2}'s\n", $0}' >> syn_${tab}
+    grep relevant--$i ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' | awk '{printf "%-'${W2}'s\n", $0}' >> ant_${tab}
+  done
+  paste -d' ' syn_${tab} ant_${tab} >> p$tab
+  cat p$tab | awk '{printf "%-'${W3}'s\n", $0}' > a$tab
+done
+
+
+paste -d' ' `echo atab*`
