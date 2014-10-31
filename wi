@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+curl -L -s http://en.wikipedia.org/wiki/$1 > page.htm
+
+w3m -dump -cols 180 page.htm | tail -n +5 > p2
+
+grep -B 10000 'Retrieved from "http' p2
+

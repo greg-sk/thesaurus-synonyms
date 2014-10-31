@@ -45,7 +45,7 @@ fi
 
 
 cd "$HOME/.sa/$word"
-curl -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
+curl -L -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
 
 # split multiple tabs, you need to ignore tab00
 csplit -f tab page.htm '/synonym-description/' {*} > /dev/null
