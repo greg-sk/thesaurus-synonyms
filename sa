@@ -71,7 +71,7 @@ W3=$((W2*2))
 for tab in tab??; do
   #printf "\nMeaning:\n" > p$tab
   printf "@\n@\n" > ${tab}_sa
-  grep '<strong class="ttl">\w' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> ${tab}_sa      # extract meaning/tab title
+  head -n 30 ${tab}00 | grep '<strong class="ttl">\w' | sed 's/.*">\(.*\)<.*/\1/g' >> ${tab}_sa      # extract meaning/tab title
   echo '-------------------------------' >> ${tab}_sa
 
   printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> ${tab}_sa
