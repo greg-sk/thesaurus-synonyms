@@ -3,8 +3,9 @@
 usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
   echo "Usage:"
-  echo "    snm <word>"
-  exit 1
+  echo "    snm <word>  - show synonym and antonym list"
+  echo "    snm         - show word origin of the last retrieved entry"
+  exit 0
 }
 
 columnize() {
@@ -20,7 +21,17 @@ urlencode() {
   echo "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
 }
 
-[ $# -gt 0 ] || usage
+if [ $# -gt 1 ] && [ "$1" = "-h" ]; then
+  usage
+fi
+
+if [ $# -eq 0 ]; then
+  last=`ls -tr $HOME/.snm | tail -n 1`
+  if [ -n "$last" ]; then
+    w3m -dump -cols 180 "$HOME/.snm/$last/page.htm" | grep -A 1000 "Word Origin" | grep -B 1000 "EXPAND" | head -n -2 
+  fi
+  exit 0
+fi
 
 word="$*"
 mkdir -p $HOME/.snm
@@ -28,6 +39,7 @@ mkdir -p $HOME/.snm
 # if the word was already processed (in dir cache)
 if ! mkdir "$HOME/.snm/$word" > /dev/null 2>&1; then
   cat "$HOME/.snm/$word/final"
+  touch "$HOME/.snm/$word"
   exit 0
 fi
 
