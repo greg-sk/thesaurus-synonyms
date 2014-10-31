@@ -51,11 +51,11 @@ W3=$((W2*2))
 
 for tab in tab??; do
   #printf "\nMeaning:\n" > p$tab
-  printf "_\n_\n" > p$tab
+  printf "@\n@\n" > p$tab
   grep '<strong class="ttl">' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> p$tab      # extract meaning/tab title
   echo '-------------------------------' >> p$tab
 
-  printf "_\n%-${W2}s%-${W2}s\n_\n" "Synonyms:" "Antonyms:" >> p$tab
+  printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> p$tab
   for i in 3 2 1; do
     grep relevant-$i ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> syn_$tab
     grep relevant--$i ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ant_$tab
@@ -68,7 +68,9 @@ for tab in tab??; do
   columnize p$tab $W3 > col_p$tab
 done
 
-echo col_ptab* | xargs -n 3 paste -d' ' | sed '/^\s*$/d' > final
+echo col_ptab* | xargs -n 3 paste -d' ' | sed '/^\s*$/d' > formatted
+
+cat formatted | sed 's/@/ /g' > final
 
 cat final
 
