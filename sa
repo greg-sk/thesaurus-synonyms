@@ -3,8 +3,8 @@
 usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
   echo "Usage:"
-  echo "    snm <word>  - show synonym and antonym list"
-  echo "    snm         - show word origin of the last retrieved entry"
+  echo "    sa <word>  - show synonym and antonym list"
+  echo "    sa         - show word origin of the last retrieved entry"
   exit 0
 }
 
@@ -26,25 +26,25 @@ if [ $# -eq 1 ] && [ "$1" = "-h" ]; then
 fi
 
 if [ $# -eq 0 ]; then
-  last=`ls -tr $HOME/.snm | tail -n 1`
+  last=`ls -tr $HOME/.sa | tail -n 1`
   if [ -n "$last" ]; then
-    w3m -dump -cols 180 "$HOME/.snm/$last/page.htm" | grep -A 1000 "Word Origin" | grep -B 1000 "EXPAND" | head -n -2 
+    w3m -dump -cols 180 "$HOME/.sa/$last/page.htm" | grep -A 1000 "Word Origin" | grep -B 1000 "EXPAND" | head -n -2 
   fi
   exit 0
 fi
 
 word="$*"
-mkdir -p $HOME/.snm
+mkdir -p $HOME/.sa
 
 # if the word was already processed (in dir cache)
-if ! mkdir "$HOME/.snm/$word" > /dev/null 2>&1; then
-  cat "$HOME/.snm/$word/final"
-  touch "$HOME/.snm/$word"
+if ! mkdir "$HOME/.sa/$word" > /dev/null 2>&1; then
+  cat "$HOME/.sa/$word/final"
+  touch "$HOME/.sa/$word"
   exit 0
 fi
 
 
-cd "$HOME/.snm/$word"
+cd "$HOME/.sa/$word"
 curl -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
 
 # split multiple tabs, you need to ignore tab00

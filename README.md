@@ -2,4 +2,5 @@
 
 Usage:
 
-    snym <word>
+    sa <word>  - show synonym and antonym list
+    sa         - show word origin of the last retrieved entry
