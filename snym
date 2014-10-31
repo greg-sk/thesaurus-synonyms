@@ -16,11 +16,15 @@ columnize() {
   done
 }
 
-if [ $# -ne 1 ]; then
+urlencode() {
+  echo "$1" | sed 's/ /%20/g'
+}
+
+if [ $# -lt 1 ]; then
   usage
 fi
 
-word=$1
+word="$*"
 mkdir -p $HOME/.snym
 
 # if the word was already processed (in dir cache)
@@ -31,7 +35,7 @@ fi
 
 
 cd "$HOME/.snym/$word"
-curl -s http://www.thesaurus.com/browse/$word > page.htm
+curl -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
 
 # split multiple tabs, you need to ignore tab00
 csplit -f tab page.htm '/synonym-description/' {*} > /dev/null
@@ -56,24 +60,26 @@ W3=$((W2*2))
 
 for tab in tab??; do
   #printf "\nMeaning:\n" > p$tab
-  printf "@\n@\n" > p$tab
-  grep '<strong class="ttl">\w' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> p$tab      # extract meaning/tab title
-  echo '-------------------------------' >> p$tab
+  printf "@\n@\n" > ${tab}_sa
+  grep '<strong class="ttl">\w' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> ${tab}_sa      # extract meaning/tab title
+  echo '-------------------------------' >> ${tab}_sa
 
-  printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> p$tab
-  grep relevant-[123] ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> syn_$tab
-  grep relevant--[123] ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ant_$tab
+  printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> ${tab}_sa
+  grep relevant-[123] ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_syn
+  grep relevant--[123] ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_ant
 
-  columnize syn_$tab $W1 > col_syn_$tab
-  columnize ant_$tab $W1 > col_ant_$tab
+  columnize ${tab}_syn $W1 > ${tab}_syn_col
+  columnize ${tab}_ant $W1 > ${tab}_ant_col
 
-  paste -d' ' col_syn_$tab col_ant_$tab >> p$tab
-  columnize p$tab $W3 > col_p$tab
+  paste -d' ' ${tab}_syn_col ${tab}_ant_col >> ${tab}_sa
+  columnize ${tab}_sa $W3 > ${tab}_sa_col
 done
 
-echo col_ptab* | xargs -n 3 paste -d' ' | sed '/^\s*$/d' > formatted
+echo tab*_sa_col | xargs -n 3 paste -d' ' | sed '/^\s*$/d' > tab_all
 
-cat formatted | sed 's/@/ /g' > final
+cat tab_all | sed 's/@/ /g' > final
+
+rm tab*
 
 cat final
 
