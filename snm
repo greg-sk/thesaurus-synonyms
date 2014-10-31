@@ -21,7 +21,7 @@ urlencode() {
   echo "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
 }
 
-if [ $# -gt 1 ] && [ "$1" = "-h" ]; then
+if [ $# -eq 1 ] && [ "$1" = "-h" ]; then
   usage
 fi
 
