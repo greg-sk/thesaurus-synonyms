@@ -3,7 +3,7 @@
 usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
   echo "Usage:"
-  echo "    snym <word>"
+  echo "    snm <word>"
   exit 1
 }
 
@@ -17,22 +17,22 @@ columnize() {
 }
 
 urlencode() {
-  echo "$1" | sed 's/ /%20/g'
+  echo "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
 }
 
 [ $# -gt 0 ] || usage
 
 word="$*"
-mkdir -p $HOME/.snym
+mkdir -p $HOME/.snm
 
 # if the word was already processed (in dir cache)
-if ! mkdir "$HOME/.snym/$word" > /dev/null 2>&1; then
-  cat "$HOME/.snym/$word/final"
+if ! mkdir "$HOME/.snm/$word" > /dev/null 2>&1; then
+  cat "$HOME/.snm/$word/final"
   exit 0
 fi
 
 
-cd "$HOME/.snym/$word"
+cd "$HOME/.snm/$word"
 curl -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
 
 # split multiple tabs, you need to ignore tab00
@@ -63,8 +63,8 @@ for tab in tab??; do
   echo '-------------------------------' >> ${tab}_sa
 
   printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> ${tab}_sa
-  grep relevant-[123] ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_syn
-  grep relevant--[123] ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_ant
+  grep relevant-[123] ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed "s/%27/'/g" | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_syn
+  grep relevant--[123] ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed "s/%27/'/g" | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ${tab}_ant
 
   columnize ${tab}_syn $W1 > ${tab}_syn_col
   columnize ${tab}_ant $W1 > ${tab}_ant_col
