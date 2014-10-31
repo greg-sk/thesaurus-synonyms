@@ -37,10 +37,15 @@ curl -s http://www.thesaurus.com/browse/$word > page.htm
 csplit -f tab page.htm '/synonym-description/' {*} > /dev/null
   
 rm tab00
+
+[ -e tab01 ] || { echo "Not found"; exit 2; }
   
 for tab in tab??; do
   # split tabs into synonym - antonym sections
   csplit -f $tab $tab '/container-info antonyms/' {*} > /dev/null
+  # ensure that at least 2 chunk files exist - necessary for further processing
+  touch ${tab}00
+  touch ${tab}01
 done
 
 rm -f syn_*; rm -f ant_*
@@ -52,14 +57,12 @@ W3=$((W2*2))
 for tab in tab??; do
   #printf "\nMeaning:\n" > p$tab
   printf "@\n@\n" > p$tab
-  grep '<strong class="ttl">' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> p$tab      # extract meaning/tab title
+  grep '<strong class="ttl">\w' ${tab}00 | sed 's/.*">\(.*\)<.*/\1/g' >> p$tab      # extract meaning/tab title
   echo '-------------------------------' >> p$tab
 
   printf "@\n%-${W2}s%-${W2}s\n@\n" "Synonyms:" "Antonyms:" >> p$tab
-  for i in 3 2 1; do
-    grep relevant-$i ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> syn_$tab
-    grep relevant--$i ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ant_$tab
-  done
+  grep relevant-[123] ${tab}00 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> syn_$tab
+  grep relevant--[123] ${tab}01 | grep -o 'thesaurus\.com\/browse\/\S*' | sed 's/%20/ /g' | sed 's/thesaurus.com\/browse\/\(.*\)"/\1/g' >> ant_$tab
 
   columnize syn_$tab $W1 > col_syn_$tab
   columnize ant_$tab $W1 > col_ant_$tab
