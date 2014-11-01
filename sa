@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
@@ -12,13 +12,13 @@ columnize() {
   f1=$1
   width=$2
   awk '{printf "%-'$width's\n", $0}' $f1
-  for i in {1..50}; do
+  for i in `seq 50`; do
     printf "%-${width}s\n"
   done
 }
 
 urlencode() {
-  echo "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
+  printf "%s" "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
 }
 
 if [ $# -eq 1 ] && [ "$1" = "-h" ]; then
