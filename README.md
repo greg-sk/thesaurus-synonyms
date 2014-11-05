@@ -2,7 +2,7 @@
 
 `sa` stands for Synonym Antonym
 
-`sa` is command line utility that retrieves word synonyms, antonyms and definition from thesaurus.com and presents it in clean way.
+`sa` is command line utility that retrieves word synonyms, antonyms and definition from thesaurus.com and presents it clearly.
 
 
 Install:
