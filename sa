@@ -10,7 +10,7 @@ usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
   echo "Usage:"
   echo "    sa <word>  - show synonym and antonym list"
-  echo "    sa         - show word origin of the last retrieved entry"
+  echo "    sa         - show word origin and example sentences of the last retrieved entry"
   exit 0
 }
 
