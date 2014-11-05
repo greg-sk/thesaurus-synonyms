@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# widths
+W1=30
+W2=$((W1+1))
+W3=$((W2*2))
+dispcols=$((`tput cols`/W3))
+
 usage() {
   echo "Show synonyms and antonyms of the word from thesaurus.com"
   echo "Usage:"
@@ -21,6 +27,10 @@ urlencode() {
   printf "%s" "$1" | sed 's/ /%20/g' | sed "s/'/%27/g"
 }
 
+display_word() {
+  echo columnized_tab*_sa | xargs -n $dispcols paste -d' ' | sed '/^\s*$/d' | sed 's/@/ /g' 
+}
+
 if [ $# -eq 1 ] && [ "$1" = "-h" ]; then
   usage
 fi
@@ -38,7 +48,8 @@ mkdir -p $HOME/.sa
 
 # if the word was already processed (in dir cache)
 if ! mkdir "$HOME/.sa/$word" > /dev/null 2>&1; then
-  cat "$HOME/.sa/$word/final"
+  cd "$HOME/.sa/$word"
+  display_word
   touch "$HOME/.sa/$word"
   exit 0
 fi
@@ -47,8 +58,18 @@ fi
 cd "$HOME/.sa/$word"
 curl -L -s http://www.thesaurus.com/browse/`urlencode $word` > page.htm
 
+if [ $? -ne 0 ]; then
+  # probably no connection
+  rm "$HOME/.sa/$word/page.htm"
+  cd
+  rmdir "$HOME/.sa/$word"
+  echo "Retrieval problem"
+  exit 1
+fi  
+
+
 # split multiple tabs, you need to ignore tab00
-csplit -f tab page.htm '/synonym-description/' {*} > /dev/null
+csplit -s -f tab page.htm '/synonym-description/' {*}
   
 rm tab00
 
@@ -56,17 +77,13 @@ rm tab00
   
 for tab in tab??; do
   # split tabs into synonym - antonym sections
-  csplit -f $tab $tab '/container-info antonyms/' {*} > /dev/null
+  csplit -s -f $tab $tab '/container-info antonyms/' {*}
   # ensure that at least 2 chunk files exist - necessary for further processing
   touch ${tab}00
   touch ${tab}01
 done
 
 rm -f syn_*; rm -f ant_*
-
-W1=30
-W2=$((W1+1))
-W3=$((W2*2))
 
 for tab in tab??; do
   #printf "\nMeaning:\n" > p$tab
@@ -82,14 +99,11 @@ for tab in tab??; do
   columnize ${tab}_ant $W1 > ${tab}_ant_col
 
   paste -d' ' ${tab}_syn_col ${tab}_ant_col >> ${tab}_sa
-  columnize ${tab}_sa $W3 > ${tab}_sa_col
+  columnize ${tab}_sa $W3 > columnized_${tab}_sa
 done
-
-echo tab*_sa_col | xargs -n 3 paste -d' ' | sed '/^\s*$/d' > tab_all
-
-cat tab_all | sed 's/@/ /g' > final
 
 rm tab*
 
-cat final
+display_word
+
 
