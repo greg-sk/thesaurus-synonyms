@@ -10,7 +10,7 @@ Install:
     apt-get install w3m
     git clone https://github.com/greg-sk/thesaurus-synonyms.git
     cd thesaurus-synonyms
-    ln -s `pwd`/sa /usr/local/bin/sa
+    sudo ln -s `pwd`/sa /usr/local/bin/sa
 
 
 Usage:
